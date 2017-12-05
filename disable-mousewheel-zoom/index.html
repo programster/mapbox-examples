@@ -1,0 +1,42 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset=utf-8 />
+  <title></title>
+  <script src='https://api.tiles.mapbox.com/mapbox.js/v2.1.5/mapbox.js'></script>
+  <link href='https://api.tiles.mapbox.com/mapbox.js/v2.1.5/mapbox.css' rel='stylesheet' />
+  <style>
+    body { margin:0; padding:0; }
+    .map { position:absolute; top:0; bottom:0; width:100%; }
+  </style>
+</head>
+<body>
+
+<!-- add leaflet drawing -->
+<div id='map-drawing' class='map'> </div>
+<link href='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-draw/v0.2.2/leaflet.draw.css' rel='stylesheet' />
+<script src='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-draw/v0.2.2/leaflet.draw.js'></script>
+
+
+<div id='map-json' class='map'> </div>
+<script>
+L.mapbox.accessToken = 'pk.eyJ1IjoiaXJhcCIsImEiOiJlUEFhU1lJIn0.-kfWre5cLXjHau6VWwqzTg';
+
+var map_options = {
+    scrollWheelZoom: false
+};
+
+var map = L.mapbox.map('map-json', 'mapbox.streets-basic', map_options);
+map.setView([54, -3], 6); // centers on whole of england
+
+
+
+
+
+
+</script>
+</body>
+</html>
+

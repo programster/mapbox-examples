@@ -1,0 +1,64 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset=utf-8 />
+  <title></title>
+  <script src='https://api.tiles.mapbox.com/mapbox.js/v2.1.5/mapbox.js'></script>
+  <link href='https://api.tiles.mapbox.com/mapbox.js/v2.1.5/mapbox.css' rel='stylesheet' />
+  <style>
+    body { margin:0; padding:0; }
+    .map { position:absolute; top:0; bottom:0; width:100%; }
+  </style>
+</head>
+<body>
+
+<!-- add leaflet drawing -->
+<div id='map-drawing' class='map'> </div>
+<link href='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-draw/v0.2.2/leaflet.draw.css' rel='stylesheet' />
+<script src='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-draw/v0.2.2/leaflet.draw.js'></script>
+
+
+<div id='map-json' class='map'> </div>
+<script>
+L.mapbox.accessToken = 'pk.eyJ1IjoiaXJhcCIsImEiOiJlUEFhU1lJIn0.-kfWre5cLXjHau6VWwqzTg';
+
+
+
+//var map = L.mapbox.map('map-json', 'mapbox.pencil');
+//var map = L.mapbox.map('map-json', 'mapbox.pirates');
+//var map = L.mapbox.map('map-json', 'mapbox.run-bike-hike');
+//var map = L.mapbox.map('map-json', 'mapbox.emerald');
+//var map = L.mapbox.map('map-json', 'mapbox.comic');
+var map = L.mapbox.map('map-json', 'mapbox.streets-basic');
+map.setView([18.434114, -70.020671], 13);
+var featureLayer = L.mapbox.featureLayer();
+var loaded = featureLayer.loadURL('data.geojson');
+loaded.addTo(map);
+
+// Add drawing to the map
+var featureGroup = L.featureGroup().addTo(map);
+
+var polyline_options = {
+    color: '#000'
+};
+
+
+var drawConfig = {
+    edit: {
+        featureGroup: featureGroup
+    }
+};
+
+var drawControl = new L.Control.Draw(drawConfig).addTo(map);
+
+map.on('draw:created', function(e) {
+    featureGroup.addLayer(e.layer);
+});
+
+
+</script>
+</body>
+</html>
+

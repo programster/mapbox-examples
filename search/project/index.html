@@ -1,0 +1,168 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset=utf-8 />
+  <title></title>
+  <script src='https://api.tiles.mapbox.com/mapbox.js/v2.1.5/mapbox.js'></script>
+  <link href='https://api.tiles.mapbox.com/mapbox.js/v2.1.5/mapbox.css' rel='stylesheet' />
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+  <style>
+    body { margin:0; padding:0; }
+    .map { position:absolute; top:0; bottom:0; width:100%; }
+  </style>
+</head>
+<body>
+
+<!-- add leaflet drawing -->
+<div id='map-drawing' class='map'> </div>
+<link href='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-draw/v0.2.2/leaflet.draw.css' rel='stylesheet' />
+<script src='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-draw/v0.2.2/leaflet.draw.js'></script>
+<script src='https://api.mapbox.com/mapbox.js/plugins/leaflet-geodesy/v0.1.0/leaflet-geodesy.js'></script>
+
+<div id='map-json' class='map'> </div>
+<script>
+L.mapbox.accessToken = 'pk.eyJ1IjoiaXJhcCIsImEiOiJlUEFhU1lJIn0.-kfWre5cLXjHau6VWwqzTg';
+
+
+var map = L.mapbox.map('map-json', 'mapbox.streets-basic');
+map.setView([54, -3], 6); // centers on whole of england
+
+
+// Add drawing to the map
+var featureGroup = L.featureGroup().addTo(map);
+
+var polyline_options = {
+    color: '#000'
+};
+
+
+var drawConfig = {
+    edit: {
+        featureGroup: featureGroup
+    },
+    draw: {
+        polygon: true,
+        polyline: false,
+        rectangle: false,
+        circle: false,
+        marker: false
+    }
+};
+
+var drawControl = new L.Control.Draw(drawConfig).addTo(map);
+
+
+
+// code from http://stackoverflow.com/questions/24018630/how-to-save-a-completed-polygon-points-leaflet-draw-to-mysql-table
+var drawnItems = new L.FeatureGroup();
+map.addLayer(drawnItems);
+
+
+var drawCreatedCallback = function (e) {
+    var polygons = [];
+    
+    var type = e.layerType;
+    drawnItems.addLayer(e.layer);
+
+    drawnItems.eachLayer(function(layer) {
+        // Note: Rectangle extends Polygon. Polygon extends Polyline.
+        // Therefore, all of them are instances of Polyline
+        if (layer instanceof L.Polyline) 
+        {
+            var latLngs = layer.getLatLngs();
+            var polygonArray = [];
+
+            for (var i=-0; i < latLngs.length; i++) 
+            {
+                var latLngObj = latLngs[i];
+                
+                var latLngPoint = [
+                    latLngObj.lat,
+                    latLngObj.lng
+                ];
+
+                polygonArray.push(latLngPoint);
+            }
+
+            // do something
+            polygons.push(polygonArray);
+        }
+
+        if (layer instanceof L.Circle) 
+        {
+            var latLngs = layer.getLatLngs();
+            // do something
+        }
+    });
+    
+    // Post the polygon data to PHP to take care of
+    
+    $.ajax({
+        type: "POST",
+        data: {"polygons" : polygons },
+        url: "http://rethinkdb.programster.org/ajax.php",
+        success: function(responseData){
+            
+            var num_accidents = 0;
+            var casualty_count = 0;
+            
+            for(var accidentIndex in responseData) 
+            {
+                num_accidents++;
+                var accident = responseData[accidentIndex];
+                
+                var markerColor = '#FF0000';
+                
+                var colorLookup = [
+                    '#00ff00', // green for 0 deaths
+                    '#1F45FC', // blue for 1
+                    '#F88017', // orange for 2
+                    '#FF0000' // red for 3+
+                ];
+                
+                if (accident.casualty_count < 4)
+                {
+                    markerColor = colorLookup[accident.casualty_count];
+                }
+                
+                var markerLatLng = L.latLng(accident.location[0], accident.location[1]);
+                
+                var markerOptions = {
+                    'draggable' : false,
+                };
+                
+                var marker = L.marker(markerLatLng, markerOptions);
+                marker.setIcon(L.mapbox.marker.icon({
+                    'marker-color': markerColor,
+                    'marker-size': 'small'
+                }));
+                
+                accident.casualty_count = parseInt(accident.casualty_count);
+                var content = "deaths: " + accident.casualty_count;
+                casualty_count += accident.casualty_count;
+                marker.bindPopup(content);
+                marker.addTo(map);
+            }
+            
+            alert("There were " + num_accidents + " accidents in this area in 2014 resulting in " + casualty_count + " deaths.");
+        }
+    });
+    
+    
+    
+
+
+};
+
+map.on('draw:created', drawCreatedCallback);
+
+
+
+
+
+</script>
+</body>
+</html>
+

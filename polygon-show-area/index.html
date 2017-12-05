@@ -1,0 +1,75 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset=utf-8 />
+  <title></title>
+  <script src='https://api.tiles.mapbox.com/mapbox.js/v2.1.5/mapbox.js'></script>
+  <link href='https://api.tiles.mapbox.com/mapbox.js/v2.1.5/mapbox.css' rel='stylesheet' />
+  <style>
+    body { margin:0; padding:0; }
+    .map { position:absolute; top:0; bottom:0; width:100%; }
+  </style>
+</head>
+<body>
+
+<!-- add leaflet drawing -->
+<div id='map-drawing' class='map'> </div>
+<link href='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-draw/v0.2.2/leaflet.draw.css' rel='stylesheet' />
+<script src='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-draw/v0.2.2/leaflet.draw.js'></script>
+<script src='https://api.mapbox.com/mapbox.js/plugins/leaflet-geodesy/v0.1.0/leaflet-geodesy.js'></script>
+
+<div id='map-json' class='map'> </div>
+<script>
+L.mapbox.accessToken = 'pk.eyJ1IjoiaXJhcCIsImEiOiJlUEFhU1lJIn0.-kfWre5cLXjHau6VWwqzTg';
+
+
+var map = L.mapbox.map('map-json', 'mapbox.streets-basic');
+map.setView([54, -3], 6); // centers on whole of england
+
+
+// Add drawing to the map
+var featureGroup = L.featureGroup().addTo(map);
+
+var polyline_options = {
+    color: '#000'
+};
+
+
+var drawConfig = {
+    edit: {
+        featureGroup: featureGroup
+    },
+    draw: {
+        polygon: true,
+        polyline: false,
+        rectangle: false,
+        circle: false,
+        marker: false
+    }
+};
+
+var drawControl = new L.Control.Draw(drawConfig).addTo(map);
+
+map.on('draw:created', showPolygonArea);
+map.on('draw:edited', showPolygonAreaEdited);
+
+function showPolygonAreaEdited(e) {
+    e.layers.eachLayer(function(layer) {
+        showPolygonArea({ layer: layer });
+    });
+}
+
+function showPolygonArea(e) {
+    featureGroup.clearLayers();
+    featureGroup.addLayer(e.layer);
+    e.layer.bindPopup((LGeo.area(e.layer) / 1000000).toFixed(2) + ' km<sup>2</sup>');
+    e.layer.openPopup();
+}
+
+
+</script>
+</body>
+</html>
+
